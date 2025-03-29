@@ -1,29 +1,28 @@
 use std::collections::HashMap;
-use std::fmt;
 
 #[derive(Debug)]
 pub struct Node { // a dom node
-    node_type: NodeType,
-    children: Vec<Node>,
+    pub node_type: NodeType,
+    pub children: Vec<Node>,
 }
 
 #[derive(Debug)]
-struct ElementData {
-    tag_name: String,
-    attributes: AttrMap, // (name, value)
+pub struct ElementData {
+    pub tag_name: String,
+    pub attributes: AttrMap, // (name, value)
 }
 
 type AttrMap = HashMap<String, String>;
 
 #[derive(Debug)]
-enum NodeType {
+pub enum NodeType {
     Element(ElementData),
     Text(String),
     Comment(String),
 }
 
 // create text node
-fn text(data: String) -> Node {
+pub fn text(data: String) -> Node {
     Node {
         node_type: NodeType::Text(data),
         children: Vec::new(),
@@ -41,6 +40,20 @@ pub fn elem(tag_name: String, attrs: AttrMap, children: Vec<Node>) -> Node {
     }
 }
 
+pub struct Parser {
+    pos: usize,
+    input: String,
+}
+
+impl Parser {
+
+    fn eof(&self) -> bool {
+        self.pos >= self.input.len()
+    }
+
+}
+
+
 pub fn parse(content: &str) -> Node {
     // 1. create a root node
     let mut root = Node {
@@ -51,6 +64,7 @@ pub fn parse(content: &str) -> Node {
         children: Vec::new(),
     };
     // 2. parse the content and create nodes
+
     // 3. add nodes to the root
     // 4. return the root node
     root
