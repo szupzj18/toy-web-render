@@ -1,7 +1,7 @@
 pub mod dom;
 
 use std::fs::File;
-use std::io::{self, Read};
+use std::io::Read;
 
 fn main() {
     // 1. read html file from example/test.html
@@ -11,4 +11,7 @@ fn main() {
         .expect("Unable to read file");
     println!("File contents:\n {}", contents);
     // 2. parse html file
+    let dom = dom::parse(&contents);
+    // 3. print dom
+    println!("DOM: {:?}", dom);
 }
