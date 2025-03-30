@@ -59,6 +59,8 @@ fn test_parser_malformed_input() {
     // Exact behavior depends on your parser implementation
     assert!(matches!(node.node_type, NodeType::Element(_)));
 }
+
+#[test]
 fn test_parse_empty() {
     let node = parse("");
     match node.node_type {

@@ -46,6 +46,26 @@ pub struct Parser {
 }
 
 impl Parser {
+    /// slice the input string
+    /// from pos to the end
+    fn next_char(&self) -> Option<char> {
+        self.input[self.pos..].chars().next()
+    }
+
+    /// use starts with to check if the input string contains specific token
+    fn starts_with(&self, prefix: &str) -> bool {
+        self.input[self.pos..].starts_with(prefix)
+    }
+
+    fn expect(&mut self, s: &str) {
+        if self.starts_with(s) {
+            self.pos += s.len(); // scanner moves forward
+            // consume the token
+        } else {
+            // panic if the token is not found
+            panic!("Expected {} at {}, found {}", s, self.pos, self.next_char().unwrap_or('\0'));
+        }
+    }
 
     fn eof(&self) -> bool {
         self.pos >= self.input.len()
@@ -68,4 +88,71 @@ pub fn parse(content: &str) -> Node {
     // 3. add nodes to the root
     // 4. return the root node
     root
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_next_char() {
+        let parser = Parser {
+            pos: 0,
+            input: String::from("Hello"),
+        };
+
+        assert_eq!(parser.next_char(), Some('H'));
+    }
+
+    #[test]
+    fn test_next_char_empty() {
+        let parser = Parser {
+            pos: 0,
+            input: String::new(),
+        };
+
+        assert_eq!(parser.next_char(), None);
+    }
+
+    #[test]
+    fn test_next_char_at_end() {
+        let parser = Parser {
+            pos: 5,
+            input: String::from("Hello"),
+        };
+
+        assert_eq!(parser.next_char(), None);
+    }
+
+    #[test]
+    fn test_starts_with() {
+        let parser = Parser {
+            pos: 0,
+            input: String::from("<div>Hello</div>"),
+        };
+
+        assert!(parser.starts_with("<div>"));
+        assert!(!parser.starts_with("<span>"));
+    }
+
+    #[test]
+    fn test_expect_failure() {
+        let mut parser = Parser {
+            pos: 0,
+            input: String::from("<div>Hello</div>"),
+        };
+
+        parser.expect("<span>");
+        // This should panic
+    }
+
+    #[test]
+    fn test_eof() {
+        let parser = Parser {
+            pos: 16,
+            input: String::from("<div>Hello</div>"),
+        };
+
+        assert!(parser.eof());
+    }
 }
