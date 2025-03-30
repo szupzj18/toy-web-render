@@ -46,6 +46,12 @@ pub struct Parser {
 }
 
 impl Parser {
+    fn consume_next_char(&mut self) -> Option<char> {
+        let c = self.next_char()?;
+        // move forward by one character
+        self.pos += c.len_utf8(); // move the position forward
+        Some(c)
+    }
     /// slice the input string
     /// from pos to the end
     fn next_char(&self) -> Option<char> {
@@ -136,6 +142,7 @@ mod tests {
     }
 
     #[test]
+    #[should_panic(expected = "Expected <span> at 0")]
     fn test_expect_failure() {
         let mut parser = Parser {
             pos: 0,
@@ -143,7 +150,6 @@ mod tests {
         };
 
         parser.expect("<span>");
-        // This should panic
     }
 
     #[test]
@@ -154,5 +160,26 @@ mod tests {
         };
 
         assert!(parser.eof());
+    }
+    
+    #[test]
+    fn test_consume_next_char() {
+        let mut parser = Parser {
+            pos: 0,
+            input: String::from("Hello"),
+        };
+        
+        assert_eq!(parser.consume_next_char(), Some('H'));
+        assert_eq!(parser.pos, 1); // Position advanced
+    }
+
+    #[test]
+    fn test_consume_next_char_empty() {
+        let mut parser = Parser {
+            pos: 0,
+            input: String::new(),
+        };
+        
+        assert_eq!(parser.consume_next_char(), None);
     }
 }
