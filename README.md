@@ -68,7 +68,7 @@ toy-web-render/
 
 ## How It Works
 
-1. The HTML parser tokenizes the input HTML
+1. The HTML parser tokenized the input HTML
 2. It constructs a tree representation of the document (DOM)
 3. The renderer traverses the DOM to produce output
 4. (Future) Style calculation and layout will be added
