@@ -46,12 +46,73 @@ pub struct Parser {
 }
 
 impl Parser {
+    
+    fn parse_name(&mut self) -> String {
+        self.consume_while(|c| matches!(c, 'a'..='z' | 'A'..='Z' | '0'..='9'))
+    }
+
+    fn parse_node(&mut self) -> Node {
+        if self.starts_with("<") {
+            self.parse_element()
+        } else {
+            self.parse_text()
+        }
+    }
+
+    fn parse_text(&mut self) -> Node {
+        Node {
+            node_type: NodeType::Text(self.consume_while(|c| c != '<')),
+            children: Vec::new(),
+        }
+    }
+
+    fn parse_element(&mut self) -> Node {
+        self.expect("<");
+        let tag_name = self.parse_name();
+        let attrs = self.parse_attributes();
+        self.expect(">");
+
+        let children = self.parse_children();
+
+        self.expect("</");
+        self.expect(&tag_name);
+        self.expect(">");
+
+        Node { 
+            node_type: NodeType::Element(ElementData {
+                tag_name,
+                attributes: attrs,
+            }),
+            children,
+        } 
+    }
+
+    fn parse_attributes(&mut self) -> AttrMap {
+        let mut attrs = HashMap::new();
+        while !self.eof() && self.next_char().unwrap() != '>' {
+            todo!("parse attributes");
+        }
+        attrs
+    }
+
+    fn parse_children(&mut self) -> Vec<Node> {
+        let mut children = Vec::new();
+        while !self.eof() && self.next_char().unwrap() != '<' {
+            children.push(self.parse_node());
+        }
+        children
+    }
+
     fn consume_while(&mut self, test: impl Fn(char) -> bool) -> String {
         let mut result = String::new();
         while !self.eof() && test(self.next_char().unwrap()) {
             result.push(self.consume_next_char().unwrap());
         }
         result
+    }
+
+    fn consume_whitespace(&mut self) {
+        self.consume_while(char::is_whitespace);
     }
 
     fn consume_next_char(&mut self) -> Option<char> {
@@ -205,6 +266,18 @@ mod tests {
         let numbers = parser.consume_while(|c| c.is_numeric());
         assert_eq!(numbers, "123");
         assert_eq!(parser.pos, 8);
+    }
+
+    #[test]
+    fn test_consume_whitespace() {
+        let mut parser = Parser {
+            pos: 0,
+            input: String::from("   Hello"),
+        };
+
+        parser.consume_whitespace();
+        assert_eq!(parser.pos, 3); // Position should be advanced by 3 spaces
+        assert_eq!(parser.next_char(), Some('H'));
     }
 
 }
