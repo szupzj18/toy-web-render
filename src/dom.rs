@@ -90,9 +90,28 @@ impl Parser {
     fn parse_attributes(&mut self) -> AttrMap {
         let mut attrs = HashMap::new();
         while !self.eof() && self.next_char().unwrap() != '>' {
-            todo!("parse attributes");
+            self.consume_whitespace();
+            let (name, value) = self.parse_attr();
+            attrs.insert(name, value);
+            self.consume_whitespace();
         }
         attrs
+    }
+
+    fn parse_attr(&mut self) -> (String, String) {
+        let name = self.parse_name();
+        self.expect("=");
+        let value = self.parse_attr_value();
+        (name, value)
+    }
+
+    fn parse_attr_value(&mut self) -> String {
+        let open_quote = self.consume_next_char().unwrap();
+        assert!(open_quote == '"' || open_quote == '\'');
+        let value = self.consume_while(|c| c != open_quote);
+        let close_quote = self.consume_next_char().unwrap();
+        assert_eq!(close_quote, open_quote);
+        value
     }
 
     fn parse_children(&mut self) -> Vec<Node> {
