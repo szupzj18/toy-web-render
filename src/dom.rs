@@ -6,7 +6,7 @@ pub struct Node { // a dom node
     pub children: Vec<Node>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct ElementData {
     pub tag_name: String,
     pub attributes: AttrMap, // (name, value)
@@ -14,7 +14,7 @@ pub struct ElementData {
 
 type AttrMap = HashMap<String, String>;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum NodeType {
     Element(ElementData),
     Text(String),
@@ -299,4 +299,43 @@ mod tests {
         assert_eq!(parser.next_char(), Some('H'));
     }
 
+    #[test]
+    fn test_parse_element() {
+        let mut parser = Parser {
+            pos: 0,
+            input: String::from("<div class=\"example\">Hello</div>"),
+        };
+
+        let node = parser.parse_element();
+        assert_eq!(node.children.len(), 1);
+        assert_eq!(node.node_type, NodeType::Element(ElementData {
+            tag_name: "div".to_string(),
+            attributes: vec![("class".to_string(), "example".to_string())].into_iter().collect(),
+        }));
+    }
+
+    #[test]
+    fn test_parse_name() {
+        let mut parser = Parser {
+            pos: 0,
+            input: String::from("div class=\"example\""),
+        };
+
+        let name = parser.parse_name();
+        assert_eq!(name, "div");
+        assert_eq!(parser.pos, 3); // Position should be advanced by the length of "div"
+    }
+
+    #[test]
+    fn test_parse_attr() {
+        let mut parser = Parser {
+            pos: 0,
+            input: String::from("class=\"example\""),
+        };
+
+        let (name, value) = parser.parse_attr();
+        assert_eq!(name, "class");
+        assert_eq!(value, "example");
+        assert_eq!(parser.pos, 15); // Position should be advanced by the length of "class=\"example\""
+    }
 }
