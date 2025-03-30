@@ -46,6 +46,14 @@ pub struct Parser {
 }
 
 impl Parser {
+    fn consume_while(&mut self, test: impl Fn(char) -> bool) -> String {
+        let mut result = String::new();
+        while !self.eof() && test(self.next_char().unwrap()) {
+            result.push(self.consume_next_char().unwrap());
+        }
+        result
+    }
+
     fn consume_next_char(&mut self) -> Option<char> {
         let c = self.next_char()?;
         // move forward by one character
@@ -182,4 +190,21 @@ mod tests {
         
         assert_eq!(parser.consume_next_char(), None);
     }
+
+    #[test]
+    fn test_consume_while() {
+        let mut parser = Parser {
+            pos: 0,
+            input: String::from("Hello123World"),
+        };
+
+        let result = parser.consume_while(|c| c.is_alphabetic());
+        assert_eq!(result, "Hello");
+        assert_eq!(parser.pos, 5);
+
+        let numbers = parser.consume_while(|c| c.is_numeric());
+        assert_eq!(numbers, "123");
+        assert_eq!(parser.pos, 8);
+    }
+
 }
