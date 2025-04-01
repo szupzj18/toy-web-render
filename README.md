@@ -46,6 +46,7 @@ toy-web-render/
 │   ├── main.rs         # Main entry point
 │   ├── dom.rs          # DOM implementation
 │   └── css.rs          # CSS parsing (future)
+├── tests/              # Unit Test 
 ├── example/            # Example HTML files for testing
 │   └── test.html       # Test HTML file
 ├── Cargo.toml          # Rust package manifest
