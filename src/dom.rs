@@ -1,7 +1,8 @@
 use std::collections::HashMap;
 
 #[derive(Debug)]
-pub struct Node { // a dom node
+pub struct Node {
+    // a dom node
     pub node_type: NodeType,
     pub children: Vec<Node>,
 }
@@ -46,7 +47,6 @@ pub struct Parser {
 }
 
 impl Parser {
-    
     fn parse_name(&mut self) -> String {
         self.consume_while(|c| matches!(c, 'a'..='z' | 'A'..='Z' | '0'..='9'))
     }
@@ -78,13 +78,13 @@ impl Parser {
         self.expect(&tag_name);
         self.expect(">");
 
-        Node { 
+        Node {
             node_type: NodeType::Element(ElementData {
                 tag_name,
                 attributes: attrs,
             }),
             children,
-        } 
+        }
     }
 
     fn parse_attributes(&mut self) -> AttrMap {
@@ -154,19 +154,22 @@ impl Parser {
     fn expect(&mut self, s: &str) {
         if self.starts_with(s) {
             self.pos += s.len(); // scanner moves forward
-            // consume the token
+                                 // consume the token
         } else {
             // panic if the token is not found
-            panic!("Expected {} at {}, found {}", s, self.pos, self.next_char().unwrap_or('\0'));
+            panic!(
+                "Expected {} at {}, found {}",
+                s,
+                self.pos,
+                self.next_char().unwrap_or('\0')
+            );
         }
     }
 
     fn eof(&self) -> bool {
         self.pos >= self.input.len()
     }
-
 }
-
 
 pub fn parse(content: &str) -> Node {
     // 1. create a root node
@@ -177,8 +180,16 @@ pub fn parse(content: &str) -> Node {
         }),
         children: Vec::new(),
     };
+    if (content.is_empty()) {
+        return root;
+    };
     // 2. parse the content and create nodes
+    let mut parser = Parser {
+        pos: 0,
+        input: content.to_string(),
+    };
 
+    root = parser.parse_node();
     // 3. add nodes to the root
     // 4. return the root node
     root
@@ -249,14 +260,14 @@ mod tests {
 
         assert!(parser.eof());
     }
-    
+
     #[test]
     fn test_consume_next_char() {
         let mut parser = Parser {
             pos: 0,
             input: String::from("Hello"),
         };
-        
+
         assert_eq!(parser.consume_next_char(), Some('H'));
         assert_eq!(parser.pos, 1); // Position advanced
     }
@@ -267,7 +278,7 @@ mod tests {
             pos: 0,
             input: String::new(),
         };
-        
+
         assert_eq!(parser.consume_next_char(), None);
     }
 
@@ -308,10 +319,15 @@ mod tests {
 
         let node = parser.parse_element();
         assert_eq!(node.children.len(), 1);
-        assert_eq!(node.node_type, NodeType::Element(ElementData {
-            tag_name: "div".to_string(),
-            attributes: vec![("class".to_string(), "example".to_string())].into_iter().collect(),
-        }));
+        assert_eq!(
+            node.node_type,
+            NodeType::Element(ElementData {
+                tag_name: "div".to_string(),
+                attributes: vec![("class".to_string(), "example".to_string())]
+                    .into_iter()
+                    .collect(),
+            })
+        );
     }
 
     #[test]
@@ -339,3 +355,4 @@ mod tests {
         assert_eq!(parser.pos, 15); // Position should be advanced by the length of "class=\"example\""
     }
 }
+
