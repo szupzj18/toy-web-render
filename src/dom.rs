@@ -65,7 +65,8 @@ impl Parser {
             children: Vec::new(),
         }
     }
-
+    // consume a element like <div></div>
+    // tag_name = div, attrs = {}
     fn parse_element(&mut self) -> Node {
         self.expect("<");
         let tag_name = self.parse_name();
@@ -116,7 +117,7 @@ impl Parser {
 
     fn parse_children(&mut self) -> Vec<Node> {
         let mut children = Vec::new();
-        while !self.eof() && self.next_char().unwrap() != '<' {
+        while !self.eof() && !self.starts_with("</") {
             children.push(self.parse_node());
         }
         children
@@ -355,4 +356,3 @@ mod tests {
         assert_eq!(parser.pos, 15); // Position should be advanced by the length of "class=\"example\""
     }
 }
-
