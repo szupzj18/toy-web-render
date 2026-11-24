@@ -52,10 +52,29 @@ impl Parser {
     }
 
     fn parse_node(&mut self) -> Node {
-        if self.starts_with("<") {
+        if self.starts_with("<!--") {
+            self.parse_comment()
+        } else if self.starts_with("<") {
             self.parse_element()
         } else {
             self.parse_text()
+        }
+    }
+
+    fn parse_comment(&mut self) -> Node {
+        self.expect("<!--");
+        let mut content = String::new();
+
+        while !self.eof() && !self.starts_with("-->") {
+            if let Some(ch) = self.consume_next_char() {
+                content.push(ch);
+            }
+        }
+        self.expect("-->");
+
+        Node {
+            node_type: NodeType::Comment(content),
+            children: Vec::new(),
         }
     }
 
@@ -74,10 +93,13 @@ impl Parser {
         self.expect(">");
 
         let children = self.parse_children();
-
-        self.expect("</");
-        self.expect(&tag_name);
-        self.expect(">");
+        if self.starts_with("</div>") && (tag_name == "p") {
+            // end
+        } else {
+            self.expect("</");
+            self.expect(&tag_name);
+            self.expect(">");
+        }
 
         Node {
             node_type: NodeType::Element(ElementData {
@@ -174,14 +196,14 @@ impl Parser {
 
 pub fn parse(content: &str) -> Node {
     // 1. create a root node
-    let mut root = Node {
+    let mut root: Node = Node {
         node_type: NodeType::Element(ElementData {
             tag_name: "root".to_string(),
             attributes: HashMap::new(),
         }),
         children: Vec::new(),
     };
-    if (content.is_empty()) {
+    if content.is_empty() {
         return root;
     };
     // 2. parse the content and create nodes
@@ -190,8 +212,14 @@ pub fn parse(content: &str) -> Node {
         input: content.to_string(),
     };
 
-    root = parser.parse_node();
+    let mut childs = parser.parse_children();
     // 3. add nodes to the root
+    if childs.is_empty() {
+        return root;
+    } else if childs.len() == 1 {
+        return childs.pop().unwrap();
+    }
+    root.children = childs;
     // 4. return the root node
     root
 }
